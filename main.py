@@ -1,6 +1,7 @@
 import sympy as sp
 
 
+# Достаем данные из файла txt
 def get_from_file(src):
     with open(src) as f:
         matrix = [list(map(float, row.split())) for row in f.readlines()]
@@ -24,6 +25,7 @@ def function_to_minimize(x):
     return func
 
 
+# Функции, являющиеся ограничениями
 def constraints_funcs(a_len, b_len, from_where, to_where, coeffs):
     amount = a_len * b_len
     constraints = []
@@ -40,21 +42,23 @@ def constraints_funcs(a_len, b_len, from_where, to_where, coeffs):
     return constraints
 
 
-# Зная размер "матрицы", находим количество неизвестных x + количество ограничений b
+# Зная размер "матрицы", находим количество неизвестных x
 def return_symbols(a_len, b_len):
     amount = a_len * b_len
     x_symbols = sp.symbols(' '.join(['x{}'.format(i) for i in range(1, amount + 1)]))
     return x_symbols
 
 
+# Фунцкия, возвращающая функцию Лагранжа и коэффициенты (лямбды)
 def lagrange_function(func_minimize, constraints):
     lagrange_func = func_minimize
     l_symbols = sp.symbols(' '.join(['l{}'.format(i) for i in range(1, len(constraints) + 1)]))
     for i in range(len(constraints)):
-        lagrange_func = lagrange_func + l_symbols[i]*(constraints[i])
+        lagrange_func = lagrange_func + l_symbols[i] * (constraints[i])
     return lagrange_func, l_symbols
 
 
+# Поиск производных (находим частные производные от функции Лагранжа по всем переменным - X_i, L_i)
 def find_derivatives(func_lagrange, x_symbols, l_symbols):
     derivatives = []
     for i in range(len(x_symbols)):
@@ -66,6 +70,7 @@ def find_derivatives(func_lagrange, x_symbols, l_symbols):
     return derivatives
 
 
+# Решение системы уравнений
 def solve_equation_system(derivatives, x_symbols, l_symbols):
     all_symbols = x_symbols + l_symbols
     solutions = sp.solve(derivatives, all_symbols)
@@ -78,6 +83,7 @@ def solve_equation_system(derivatives, x_symbols, l_symbols):
     return solutions_list
 
 
+# Считаем новые коэффициенты, зная решение системы
 def get_new_coefficients(coeffs, x_values):
     k = 0
     for i in range(len(coeffs)):
@@ -88,9 +94,10 @@ def get_new_coefficients(coeffs, x_values):
 
 
 def main():
-    a_coef, b_coef, coeffs = get_from_file('example.txt')
-    n, m = len(a_coef), len(b_coef)  # нахожу размерность: n - количество a, m - количество b
-    x_symbols = return_symbols(n, m)
+    a_coef, b_coef, coeffs = get_from_file('example.txt')  # Достаем коэффициенты А (продавцы), B (покупатели), С_ij
+    # (коэффициенты в матрице)
+    n, m = len(a_coef), len(b_coef)  # Нахожу размерность: n - количество a, m - количество b
+    x_symbols = return_symbols(n, m)  # Находим все X
     func_minimize = function_to_minimize(x_symbols)
     constraints = constraints_funcs(n, m, a_coef, b_coef, coeffs)
     func_lagrange, l_symbols = lagrange_function(func_minimize, constraints)
